@@ -1,0 +1,16 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# CatBoost
+catboost_info/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class

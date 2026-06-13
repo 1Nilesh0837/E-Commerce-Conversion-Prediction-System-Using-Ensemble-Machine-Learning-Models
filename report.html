@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Summer Analytics 2026 - Week 2 Hackathon Report</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px 40px;
+            color: #1a1a2e;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 20px;
+            color: #16213e;
+            margin-bottom: 3px;
+            border-bottom: 3px solid #0f3460;
+            padding-bottom: 8px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #555;
+            font-size: 11px;
+            margin-bottom: 15px;
+        }
+        
+        h2 {
+            font-size: 13px;
+            color: #0f3460;
+            margin-top: 14px;
+            margin-bottom: 5px;
+            border-left: 4px solid #e94560;
+            padding-left: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 6px 0;
+            font-size: 10.5px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 4px 8px;
+            text-align: left;
+        }
+        
+        th {
+            background: #0f3460;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) { background: #f8f9fa; }
+        
+        .highlight {
+            background: #e8f5e9;
+            border: 1px solid #4caf50;
+            border-radius: 4px;
+            padding: 6px 10px;
+            margin: 8px 0;
+            font-weight: 600;
+        }
+        
+        .two-col {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .two-col > div { flex: 1; }
+        
+        ul { margin-left: 18px; margin-bottom: 4px; }
+        li { margin-bottom: 2px; }
+        
+        .tag {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        @media print {
+            body { padding: 15px 25px; }
+            @page { margin: 1cm; size: A4; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>Summer Analytics 2026 — Week 2 Hackathon</h1>
+<p class="subtitle">Binary Classification: User Conversion Prediction &nbsp;|&nbsp; Metric: F1 Score</p>
+
+<h2>1. Dataset Overview</h2>
+<div class="two-col">
+    <div>
+        <table>
+            <tr><th>Dataset</th><th>Rows</th><th>Columns</th></tr>
+            <tr><td>Train</td><td>10,000</td><td>14</td></tr>
+            <tr><td>Public Test</td><td>3,000</td><td>14 (with labels)</td></tr>
+            <tr><td>Private Test</td><td>3,000</td><td>13 (no labels)</td></tr>
+        </table>
+    </div>
+    <div>
+        <table>
+            <tr><th>Target</th><th>Count</th><th>Percentage</th></tr>
+            <tr><td>Converted = 0</td><td>6,913</td><td>69.13%</td></tr>
+            <tr><td>Converted = 1</td><td>3,087</td><td>30.87%</td></tr>
+        </table>
+    </div>
+</div>
+
+<p><strong>Features:</strong> User_ID, Age, Income, City_Tier, Device_Type, Traffic_Source, Pages_Viewed, Products_Viewed, Time_On_Site, Previous_Purchases, Discount_Seen, Browser_Version, Campaign_Code</p>
+
+<table>
+    <tr><th>Missing Feature</th><th>Count</th><th>% Missing</th></tr>
+    <tr><td>Time_On_Site</td><td>1,848</td><td>18.5%</td></tr>
+    <tr><td>Age</td><td>1,480</td><td>14.8%</td></tr>
+    <tr><td>Income</td><td>984</td><td>9.8%</td></tr>
+</table>
+
+<h3>Key EDA Findings:</h3>
+<ul>
+    <li>Users with higher <code>Pages_Viewed</code> and <code>Products_Viewed</code> showed significantly higher conversion rates.</li>
+    <li><code>Previous_Purchases</code> was positively correlated with conversion.</li>
+    <li><code>Campaign_Code</code> exhibited large variation in conversion rates across ~9,000 unique values and was therefore selected for target encoding.</li>
+</ul>
+
+<h2>2. Data Cleaning</h2>
+<ul>
+    <li><strong>Missing Indicators:</strong> Created binary flags (<code>Age_missing</code>, <code>Income_missing</code>, <code>Time_missing</code>, <code>total_missing</code>) — missingness itself can be predictive</li>
+    <li><strong>Imputation:</strong> Filled missing values with <strong>median</strong> (Age=41.0, Income=70,171.6, Time_On_Site=11.1) — computed only on training data to prevent leakage</li>
+    <li><strong>Outlier Handling:</strong> Time_On_Site had extreme outliers (max=607.4 vs median=11.1) — created a <strong>clipped version</strong> capped at 60</li>
+    <li><strong>Data Augmentation:</strong> After model selection and validation, train and public_test labels were combined to retrain the final ensemble before generating private_test predictions.</li>
+</ul>
+
+<h2>3. Feature Engineering</h2>
+<p><strong>20 engineered features</strong> across 5 categories, expanding to <strong>~40 total features</strong>:</p>
+
+<div class="two-col">
+    <div>
+        <table>
+            <tr><th>Category</th><th>Features</th></tr>
+            <tr><td>Engagement</td><td>product_page_ratio, intent_score, session_depth, browsing_intensity, product_intensity</td></tr>
+            <tr><td>Financial</td><td>loyalty_score, income_purchase_ratio, affordability</td></tr>
+            <tr><td>Discount</td><td>discount_interest, discount_intent</td></tr>
+        </table>
+    </div>
+    <div>
+        <table>
+            <tr><th>Category</th><th>Features</th></tr>
+            <tr><td>Interactions</td><td>browser_age, age_income, pages_sq, products_sq</td></tr>
+            <tr><td>Transforms</td><td>log_income, log_time, time_clipped, high_engagement, returning_buyer</td></tr>
+            <tr><td>Encoding</td><td>5 target-encoded + 2 freq-encoded</td></tr>
+        </table>
+    </div>
+</div>
+
+<p><strong>Encoding Methods:</strong></p>
+<ul>
+    <li><strong>KFold Target Encoding</strong> (5-fold, leak-free): Device_Type, Traffic_Source, Campaign_Code, Browser_Version, City_Tier</li>
+    <li><strong>Frequency Encoding:</strong> Campaign_Code, Browser_Version — captures how common a category is</li>
+</ul>
+
+<h2>4. Models Tried</h2>
+<table>
+    <tr><th>Model</th><th>Baseline CV F1</th><th>Tuned CV F1</th><th>Tuning</th></tr>
+    <tr><td><span class="tag">CatBoost</span></td><td>0.39284</td><td><strong>0.56447</strong></td><td>Optuna (20 trials)</td></tr>
+    <tr><td><span class="tag">LightGBM</span></td><td>0.39616</td><td><strong>0.55819</strong></td><td>Optuna (20 trials)</td></tr>
+    <tr><td><span class="tag">XGBoost</span></td><td>0.36814</td><td><strong>0.56642</strong></td><td>Optuna (20 trials)</td></tr>
+    <tr><td><span class="tag">ExtraTrees</span></td><td>0.36343</td><td>N/A</td><td>Default params</td></tr>
+</table>
+<p><em>All scores from 5-fold Stratified CV. Tuned F1 includes threshold optimization.</em></p>
+
+<p><strong>Hyperparameter Tuning:</strong> Used <strong>Optuna</strong> (Bayesian optimization) with 20 trials per model. Each trial evaluates 5-fold CV with threshold-optimized F1.</p>
+
+<h2>5. Best Model: Weighted Ensemble</h2>
+<div class="highlight">
+    🏆 <strong>Best Model = Weighted Ensemble</strong> of CatBoost (60%) + LightGBM (15%) + XGBoost (25%)<br>
+    Optimal threshold: <strong>0.26</strong> &nbsp;|&nbsp; Ensemble CV F1: <strong>0.56706</strong>
+</div>
+<p><em>The ensemble was selected because it consistently outperformed individual models during cross-validation while reducing model-specific variance.</em></p>
+
+<p><strong>Key Techniques That Boosted Performance:</strong></p>
+<ul>
+    <li><strong>Threshold Optimization:</strong> Instead of default 0.5, searched [0.25, 0.65] to find the optimal decision boundary, which improved validation F1 score compared to the default threshold.</li>
+    <li><strong>Ensemble Weight Search:</strong> Grid search over CatBoost, LightGBM, XGBoost weight combinations</li>
+    <li><strong>Train+Public Retraining:</strong> Retraining on combined train and public test labels to maximize data exposure before final predictions.</li>
+    <li><strong>Feature Engineering:</strong> 20 domain-specific features capturing engagement, intent, financial behavior</li>
+    <li><strong>Leak-free Encoding:</strong> KFold target encoding prevents overfitting on high-cardinality features</li>
+</ul>
+
+<h2>6. Final F1 Score</h2>
+<table>
+    <tr><th>Metric</th><th>Value</th></tr>
+    <tr><td>CV F1 Score (5-Fold Stratified)</td><td><strong>0.56706</strong></td></tr>
+    <tr><td>Optimal Threshold</td><td><strong>0.26</strong></td></tr>
+    <tr><td>Ensemble Weights (Cat / LGB / XGB)</td><td><strong>0.60 / 0.15 / 0.25</strong></td></tr>
+    <tr><td>Total Features Used</td><td>42</td></tr>
+    <tr><td>Cross-Validation Strategy</td><td>5-Fold Stratified</td></tr>
+</table>
+
+<p style="margin-top: 12px; text-align: center; color: #888; font-size: 9px;">
+    Generated for Summer Analytics 2026 — Week 2 Hackathon Submission
+</p>
+
+</body>
+</html>
