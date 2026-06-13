@@ -1,6 +1,6 @@
 """
 =============================================================================
-Summer Analytics 2026 - Week 2 Hackathon
+User Conversion Prediction Pipeline
 Full Competition Pipeline: Top-1 Strategy
 =============================================================================
 Phases:

@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🏆 Summer Analytics 2026 — Week 2 Hackathon
+# 🏆 User Conversion Prediction
 
 ### User Conversion Prediction | Binary Classification
 
@@ -39,7 +39,7 @@
 
 ## 🎯 Project Overview
 
-This project tackles a **binary classification** problem from the Summer Analytics 2026 Hackathon. Given user browsing behavior, demographics, and session metadata, we predict whether a visitor will convert (`Converted = 1`) or not (`Converted = 0`).
+This project tackles a **binary classification** problem. Given user browsing behavior, demographics, and session metadata, we predict whether a visitor will convert (`Converted = 1`) or not (`Converted = 0`).
 
 **Evaluation Metric:** F1 Score (harmonic mean of Precision and Recall)
 
@@ -97,44 +97,7 @@ flowchart TD
     style K fill:#06d6a0,stroke:#118ab2,color:#1a1a2e
 ```
 
-### End-to-End ML Project Architecture (Production-Ready)
 
-```mermaid
-flowchart TD
-    subgraph DataLayer["📦 Data Layer"]
-        DS["Data Source<br/><i>CSV / API / Database</i>"]
-        DI["Data Ingestion<br/><i>pandas read_csv</i>"]
-        DV["Data Validation<br/><i>Schema checks, dtype validation</i>"]
-    end
-
-    subgraph ProcessingLayer["⚙️ Processing Layer"]
-        DT["Data Transformation<br/><i>Missing values, outliers, scaling</i>"]
-        FE["Feature Store<br/><i>42 engineered features</i>"]
-    end
-
-    subgraph TrainingLayer["🤖 Training Layer"]
-        MT["Model Training<br/><i>CatBoost + LightGBM + XGBoost</i>"]
-        ME["Model Evaluation<br/><i>5-Fold Stratified CV, F1 Score</i>"]
-        HPO["Hyperparameter Tuning<br/><i>Optuna (Bayesian)</i>"]
-        ENS["Ensemble & Threshold<br/><i>Weighted average + F1 optimization</i>"]
-    end
-
-    subgraph DeployLayer["🚀 Deployment Layer"]
-        MS["Model Saving<br/><i>.pkl / .cbm serialization</i>"]
-        API["Flask / FastAPI Backend<br/><i>REST API endpoint</i>"]
-        UI["Frontend Dashboard<br/><i>Streamlit / React</i>"]
-        PRED["Prediction Output<br/><i>Real-time inference</i>"]
-    end
-
-    DS --> DI --> DV --> DT --> FE --> MT
-    MT --> HPO --> ME --> ENS --> MS
-    MS --> API --> UI --> PRED
-
-    style DataLayer fill:#1a1a2e,stroke:#e94560,color:#fff
-    style ProcessingLayer fill:#16213e,stroke:#0f3460,color:#fff
-    style TrainingLayer fill:#0f3460,stroke:#533483,color:#fff
-    style DeployLayer fill:#2d6a4f,stroke:#40916c,color:#fff
-```
 
 ---
 
@@ -492,7 +455,7 @@ pip install pandas numpy scikit-learn catboost lightgbm xgboost optuna matplotli
 ### Run the Full Pipeline
 
 ```bash
-cd "Week2-hackathon-datasetsacd318d"
+cd "user-conversion-prediction"
 python pipeline.py
 ```
 
@@ -527,7 +490,7 @@ The notebook includes EDA visualizations, step-by-step explanations, and all cod
 ## 📁 Project Structure
 
 ```
-Week2-hackathon-datasetsacd318d/
+user-conversion-prediction/
 │
 ├── 📊 Data
 │   ├── train.csv              # Training data (10,000 rows)
@@ -551,7 +514,7 @@ Week2-hackathon-datasetsacd318d/
 │   └── report.html            # One-page summary (print to PDF)
 │
 └── 📓 Reference
-    └── SA2026_Starter_Notebook.ipynb  # Original starter notebook
+    └── Starter_Notebook.ipynb  # Original starter notebook
 ```
 
 ---
@@ -598,7 +561,7 @@ Week2-hackathon-datasetsacd318d/
 
 <div align="center">
 
-### ⭐ Built for Summer Analytics 2026 — IIT Guwahati
+### ⭐ User Conversion Prediction Project
 
 **CV F1 Score: 0.567** | **42 Features** | **3-Model Ensemble** | **Optuna-Tuned**
 
