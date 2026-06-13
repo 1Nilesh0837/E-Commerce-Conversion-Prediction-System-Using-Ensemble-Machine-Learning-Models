@@ -101,39 +101,108 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    subgraph DataLayer["📦 Data Layer"]
-        DS["Data Source<br/><i>CSV / API / Database</i>"]
-        DI["Data Ingestion<br/><i>pandas read_csv</i>"]
-        DV["Data Validation<br/><i>Schema checks, dtype validation</i>"]
+    %% Styling
+    classDef default fill:#f9f9f9,stroke:#333,stroke-width:1px;
+    classDef process fill:#e1f5fe,stroke:#0288d1,stroke-width:1px;
+    classDef storage fill:#fff3e0,stroke:#f57c00,stroke-width:1px;
+    classDef check fill:#e8f5e9,stroke:#388e3c,stroke-width:1px;
+    classDef error fill:#ffebee,stroke:#d32f2f,stroke-width:1px;
+    classDef deployment fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1px;
+    classDef monitor fill:#fffde7,stroke:#fbc02d,stroke-width:1px;
+    classDef title fill:#fff,stroke:none,font-weight:bold,font-size:14px;
+
+    %% Data Layer
+    subgraph Data_Layer ["🟢 Dataset Creation & Versioning"]
+        direction LR
+        D1([Raw CSVs / DB]) -->|DVC| D2[(Data Versioning)]
+        D2 --> D3{Data Quality<br>Check}
+        D3 -->|Pass| D4[(Clean Data)]
+        D3 -->|Fail| D5[Alert Data Eng]
     end
 
-    subgraph ProcessingLayer["⚙️ Processing Layer"]
-        DT["Data Transformation<br/><i>Missing values, outliers, scaling</i>"]
-        FE["Feature Store<br/><i>42 engineered features</i>"]
+    %% Notebooks
+    subgraph Notebooks ["📒 Notebooks (Experimentation)"]
+        direction TB
+        N1[Data Exploration / EDA]
+        N2[Creating Data Expectations]
+        N3[Initial ML Experiments]
+        N1 --> N2 --> N3
+    end
+    
+    D2 -.->|Exploration| N1
+
+    %% CI / CD
+    subgraph CI_CD ["⚙️ Continuous Integration (CI)"]
+        direction LR
+        C1[Commit / Merge Code] --> C2{Code Quality<br>Check}
+        C2 -->|Pass| C3[Run Unit Tests]
+        C2 -->|Fail| C4[Fix Code]
+        C3 -->|Push| C5[(GitHub Repo)]
     end
 
-    subgraph TrainingLayer["🤖 Training Layer"]
-        MT["Model Training<br/><i>CatBoost + LightGBM + XGBoost</i>"]
-        ME["Model Evaluation<br/><i>5-Fold Stratified CV, F1 Score</i>"]
-        HPO["Hyperparameter Tuning<br/><i>Optuna (Bayesian)</i>"]
-        ENS["Ensemble & Threshold<br/><i>Weighted average + F1 optimization</i>"]
+    N3 -.->|Code Versioning| C1
+
+    %% Training Pipeline
+    subgraph Training_Pipeline ["🔄 Model Training Pipeline (Airflow / Kubeflow)"]
+        direction TB
+        T1[Data Preparation / Split] --> T2[Feature Engineering & Encoding]
+        T2 --> T3[Hyperparameter Optimization]
+        
+        T3 --> T4A[Train CatBoost]
+        T3 --> T4B[Train LightGBM]
+        T3 --> T4C[Train XGBoost]
+        
+        T4A & T4B & T4C --> T5[Model Ensemble & Threshold Opt]
+        T5 --> T6{Model Validation<br>F1 > Baseline?}
+        
+        T6 -->|Yes| T7[Model Stage Transition<br>(Staging -> Prod)]
+        T6 -->|No| T8[Model Report Generation]
+    end
+    
+    D4 -->|Trigger Train| T1
+    C5 -->|Trigger Pipeline| T1
+
+    %% Model Registry
+    subgraph Registry ["📦 Model Registry (MLflow)"]
+        direction TB
+        R1[(Model Artifacts)]
+        R2[(Metrics & Params)]
     end
 
-    subgraph DeployLayer["🚀 Deployment Layer"]
-        MS["Model Saving<br/><i>.pkl / .cbm serialization</i>"]
-        API["Flask / FastAPI Backend<br/><i>REST API endpoint</i>"]
-        UI["Frontend Dashboard<br/><i>Streamlit / React</i>"]
-        PRED["Prediction Output<br/><i>Real-time inference</i>"]
+    T7 -->|Save Best Model| R1
+    T7 -->|Log Scores| R2
+
+    %% Deployment
+    subgraph Deployment ["🚀 Model Deployment"]
+        direction TB
+        M1[Model Serving API<br>(FastAPI)]
+        M2[Frontend Dashboard<br>(Streamlit / React)]
+        M1 <-->|Requests & Responses| M2
     end
 
-    DS --> DI --> DV --> DT --> FE --> MT
-    MT --> HPO --> ME --> ENS --> MS
-    MS --> API --> UI --> PRED
+    R1 -->|Deploy Model| M1
 
-    style DataLayer fill:#1a1a2e,stroke:#e94560,color:#fff
-    style ProcessingLayer fill:#16213e,stroke:#0f3460,color:#fff
-    style TrainingLayer fill:#0f3460,stroke:#533483,color:#fff
-    style DeployLayer fill:#2d6a4f,stroke:#40916c,color:#fff
+    %% Monitoring
+    subgraph Monitoring ["📈 Model Monitoring"]
+        direction LR
+        Mon1{Data Quality<br>Check}
+        Mon2{Model Decay /<br>Data Drift}
+        Mon3[Deployed Model<br>Report Gen]
+        
+        Mon1 -->|Pass| Mon2
+        Mon2 -->|Drift Detected| Mon3
+    end
+
+    M1 -.->|Live Traffic Logs| Mon1
+    Mon3 -.->|Trigger Retraining| T1
+
+    %% Apply Styles
+    class D1,D4,R1,R2 storage;
+    class D3,T6,Mon1,Mon2,C2 check;
+    class D5,T8,C4 error;
+    class M1,M2 deployment;
+    class Mon1,Mon2,Mon3 monitor;
+    class T1,T2,T3,T4A,T4B,T4C,T5,T7 process;
 ```
 
 ---
